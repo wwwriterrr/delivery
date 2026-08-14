@@ -1,0 +1,83 @@
+@font-face {
+  font-family: "PT Serif";
+  src: url("/assets/cdek/fonts/PTSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PT Serif";
+  src: url("/assets/cdek/fonts/PTSerif-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("/assets/cdek/fonts/OpenSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("/assets/cdek/fonts/OpenSans-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("/assets/cdek/fonts/OpenSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font-heading: "PT Serif", Georgia, serif;
+  --font-body: "Open Sans", system-ui, sans-serif;
+
+  --color-bg: #FDF8EF;
+  --color-surface: #ffffff;
+  --color-border: #e8dfc8;
+  --color-text: #245326;
+  --color-text-secondary: #5a7a5e;
+  --color-accent: #E9AA44;
+  --color-accent-hover: #d4992e;
+  --color-accent-light: #fdf4e0;
+  --color-primary: #245326;
+  --color-error: #b54a4a;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 2px 12px rgba(36, 83, 38, 0.06);
+  --shadow-lg: 0 8px 32px rgba(36, 83, 38, 0.1);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}

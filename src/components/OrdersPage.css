@@ -1,0 +1,153 @@
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.orders-list--center {
+  display: flex;
+  justify-content: center;
+}
+
+.pay-success-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.pay-success-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.pay-success-text {
+  max-width: 420px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.order-card {
+  display: flex;
+  gap: 20px;
+  padding: 24px;
+  align-items: flex-start;
+}
+
+.order-card__thumbnail {
+  width: 96px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.order-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  color: #000;
+  font-weight: 400;
+}
+
+.order-card__title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.order-card__author {
+  font-size: 14px;
+}
+
+.order-card__label {
+  opacity: 0.5;
+}
+
+.order-card__date {
+  font-size: 13px;
+  color: #000;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+
+.order-card__descr {
+  font-size: 14px;
+  color: #000;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.order-card__detail {
+  font-size: 14px;
+}
+
+.order-card__price {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .order-card {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .order-card__thumbnail {
+    width: 72px;
+    height: 108px;
+  }
+
+  .order-card__title {
+    font-size: 16px;
+  }
+
+  .order-card__price {
+    font-size: 16px;
+  }
+
+  .order-card__descr {
+    -webkit-line-clamp: 2;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .order-card {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .order-card__thumbnail {
+    width: 60px;
+    height: 90px;
+  }
+
+  .order-card__title {
+    font-size: 15px;
+  }
+
+  .order-card__author,
+  .order-card__descr {
+    font-size: 13px;
+  }
+
+  .order-card__price {
+    font-size: 15px;
+  }
+
+  .order-card__descr {
+    -webkit-line-clamp: 2;
+  }
+}
