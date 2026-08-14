@@ -335,7 +335,7 @@ function App() {
           </div>
           <h1 className="app__title order-success__title">Оплата прошла успешно!</h1>
           <p className="order-success__text">
-            Предзаказ оформлен. Заказ в СДЭК будет создан чуть позже — вы получите уведомление.
+            Предзаказ оформлен. Отправка заказа осуществляется в течение 45-60 дней после оплаты. При отправке заказа вы получите уведомление на почту, указ анную в форме. После этого статус заказа можно будет отслеживать в личном кабинете СДЭК.
           </p>
           <a className="order-success__link" href="/orders/">Перейти к заказам</a>
         </div>
@@ -438,7 +438,7 @@ function App() {
           <div className="bento-card__title">
             Населённый пункт <span className="required-mark">*</span>
           </div>
-          <div className="delivery-note">Доставка осуществляется сервисом СДЭК. Выберите пункт, из которого вам удобно получить посылку.</div>
+          <div className="delivery-note">Доставка осуществляется сервисом СДЭК. Выберите пункт, в котором вам удобно получить посылку.</div>
           <CitySearch onCitySelect={handleCitySelect} selectedCity={selectedCity} />
         </div>
 
