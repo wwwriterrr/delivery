@@ -67,6 +67,40 @@
     max-height: 60%;
     border-radius: var(--radius-md);
   }
+
+  /*
+   * The sheet is only ~190px tall, so a confirm button pinned to the bottom of
+   * the content sits below the fold: reachable by scrolling inside the sheet,
+   * but nothing suggests it is there. Lift it directly under the address, and
+   * let the details the reader can take or leave scroll beneath it.
+   *
+   * Done with `order` rather than by moving the markup, so the DOM — and with
+   * it the reading and focus order — stays name → address → details → action.
+   */
+  .map-point-overlay__name {
+    order: 1;
+  }
+
+  .map-point-overlay__address {
+    order: 2;
+  }
+
+  .map-point-overlay__confirm {
+    order: 3;
+    margin-top: 4px;
+  }
+
+  .map-point-overlay__phone {
+    order: 4;
+  }
+
+  .map-point-overlay__time {
+    order: 5;
+  }
+
+  .map-point-overlay__schedule-block {
+    order: 6;
+  }
 }
 
 .map-point-overlay__close {
