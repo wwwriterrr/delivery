@@ -13,6 +13,7 @@ import { PointList } from "../components/PointList";
 import { BookCard } from "../components/BookCard";
 import { ErrorState } from "../components/ErrorState";
 import { PageLoader } from "../components/PageLoader";
+import { PaymentSuccess } from "../components/PaymentSuccess";
 import { IconCoin } from "../components/IconCoin";
 import { bukaLabel } from "../utils/format";
 import { formatPhone, isCompletePhone, toBackendPhone } from "../utils/phone";
@@ -282,30 +283,8 @@ export function PreorderPage() {
 
   if (orderSuccess) {
     return (
-      <div className="app app--center">
-        <div className="order-success">
-          <div className="order-success__check">
-            <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <circle cx="26" cy="26" r="25" fill="none" stroke="var(--color-primary)" strokeWidth="2" />
-              <path
-                d="M15 27 L23 35 L37 19"
-                fill="none"
-                stroke="var(--color-primary)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="order-success__path"
-              />
-            </svg>
-          </div>
-          <h1 className="app__title order-success__title">Оплата прошла успешно!</h1>
-          <p className="order-success__text">
-            Предзаказ оформлен. Отправка заказа осуществляется в течение 45-60 дней после оплаты.
-            При отправке заказа вы получите уведомление на почту, указанную в форме. После этого
-            статус заказа можно будет отслеживать в личном кабинете СДЭК.
-          </p>
-          <a className="order-success__link" href={ordersUrl()}>Перейти к заказам</a>
-        </div>
+      <div className="app">
+        <PaymentSuccess />
       </div>
     );
   }

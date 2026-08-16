@@ -1,0 +1,134 @@
+/*
+ * The confirmation is the one screen a reader may keep open or screenshot, so
+ * it gets the same card language as the rest of the form rather than sitting
+ * bare on the background. One thing moves — the check being drawn — and
+ * everything around it stays still.
+ */
+
+.payment-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 48px 40px 40px;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  /* The host site's header is fixed at 59px; keep clear of it when scrolled to. */
+  scroll-margin-top: 80px;
+}
+
+.payment-success__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  animation: payment-success-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.payment-success__badge svg {
+  width: 46px;
+  height: 46px;
+}
+
+.payment-success__check {
+  stroke-dasharray: 46;
+  stroke-dashoffset: 46;
+  animation: payment-success-draw 0.4s ease-out 0.35s both;
+}
+
+.payment-success__title {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text);
+  animation: payment-success-rise 0.4s ease-out 0.5s both;
+}
+
+.payment-success__text {
+  max-width: 420px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  animation: payment-success-rise 0.4s ease-out 0.62s both;
+}
+
+.payment-success__cta {
+  margin-top: 8px;
+  padding: 13px 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+  animation: payment-success-rise 0.4s ease-out 0.74s both;
+
+  &:hover {
+    background: var(--color-accent-hover);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@keyframes payment-success-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes payment-success-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes payment-success-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .payment-success {
+    padding: 36px 20px 28px;
+    border-radius: var(--radius-md);
+  }
+
+  .payment-success__badge {
+    width: 72px;
+    height: 72px;
+  }
+
+  .payment-success__badge svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .payment-success__title {
+    font-size: 22px;
+  }
+}

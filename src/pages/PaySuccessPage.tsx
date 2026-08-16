@@ -5,6 +5,7 @@ import type { GuestOrder } from "../services/cdekApi";
 import { errorMessage, isAbortError } from "../services/http";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { OrderCard } from "../components/OrderCard";
+import { PaymentSuccess } from "../components/PaymentSuccess";
 import { ErrorState } from "../components/ErrorState";
 import { PageLoader } from "../components/PageLoader";
 import { ordersUrl } from "../routes/paths";
@@ -105,25 +106,7 @@ export function PaySuccessPage() {
 
   return (
     <div className="app">
-      <div className="pay-success-header">
-        <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" className="pay-success-icon" aria-hidden="true">
-          <circle cx="26" cy="26" r="25" fill="none" stroke="var(--color-primary)" strokeWidth="2" />
-          <path
-            d="M15 27 L23 35 L37 19"
-            fill="none"
-            stroke="var(--color-primary)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <h1 className="app__title">Оплата прошла успешно!</h1>
-        <p className="pay-success-text">
-          Предзаказ оформлен. Отправка заказа осуществляется в течение 45-60 дней после оплаты. При
-          отправке заказа вы получите уведомление на почту, указанную в форме. После этого статус
-          заказа можно будет отслеживать в личном кабинете СДЭК.
-        </p>
-      </div>
+      <PaymentSuccess />
 
       {order && (
         <div className="orders-list orders-list--center">
