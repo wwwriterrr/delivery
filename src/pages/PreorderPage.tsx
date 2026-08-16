@@ -179,13 +179,15 @@ export function PreorderPage() {
   }, [fullName, phone, email]);
 
   const authenticated = session === "authenticated";
-  const consentRequired = !authenticated;
-  const isFormValid =
+  const detailsComplete =
     fullName.trim().length > 0 &&
     isCompletePhone(phone) &&
     EMAIL_PATTERN.test(email.trim()) &&
-    confirmedPoint !== null &&
-    (!consentRequired || consentGiven);
+    confirmedPoint !== null;
+
+  // Consent is required of everyone: being signed in is not itself consent to
+  // pass personal data to the carrier for this particular order.
+  const isFormValid = detailsComplete && consentGiven;
 
   const handleSubmit = useCallback(async () => {
     // Without book data there is no price: submitting here would create a
@@ -481,37 +483,39 @@ export function PreorderPage() {
 
         {confirmedPoint && (
           <>
-            {consentRequired && (
-              <label className="consent-checkbox">
-                <input
-                  type="checkbox"
-                  checked={consentGiven}
-                  onChange={(e) => setConsentGiven(e.target.checked)}
-                />
-                <span>
-                  Я выражаю{" "}
-                  <a href={`${BACKEND_URL}/alterlit-rules/?doc=privacy3#privacy-personal`} target="_blank" rel="noopener noreferrer">
-                    согласие на передачу и обработку персональных данных
-                  </a>{" "}
-                  в соответствии с{" "}
-                  <a href={`${BACKEND_URL}/alterlit-rules/?doc=privacy3`} target="_blank" rel="noopener noreferrer">
-                    Политикой конфиденциальности
-                  </a>
-                </span>
-              </label>
-            )}
+            <label className="consent-checkbox">
+              <input
+                type="checkbox"
+                checked={consentGiven}
+                onChange={(e) => setConsentGiven(e.target.checked)}
+              />
+              <span>
+                Я выражаю{" "}
+                <a href={`${BACKEND_URL}/alterlit-rules/?doc=privacy4`} target="_blank" rel="noopener noreferrer">
+                  согласие на передачу и обработку персональных данных
+                </a>{" "}
+                в соответствии с{" "}
+                <a href={`${BACKEND_URL}/alterlit-rules/?doc=privacy3`} target="_blank" rel="noopener noreferrer">
+                  Политикой конфиденциальности
+                </a>
+              </span>
+            </label>
+
             <button className="submit-btn" type="submit" disabled={!isFormValid || submitting}>
               {submitting ? (
                 "Отправка..."
-              ) : !isFormValid ? (
+              ) : !detailsComplete ? (
                 "Заполните все поля и выберите пункт выдачи"
-              ) : consentRequired ? (
-                <>Оплатить {book.price} ₽</>
-              ) : (
+              ) : !consentGiven ? (
+                // Once the form itself is complete, name the one thing left.
+                "Подтвердите согласие на обработку данных"
+              ) : authenticated ? (
                 <>
                   Оплатить {book.price}{" "}
                   <IconCoin width={18} height={20} role="img" aria-label={bukaLabel(book.price)} />
                 </>
+              ) : (
+                <>Оплатить {book.price} ₽</>
               )}
             </button>
           </>

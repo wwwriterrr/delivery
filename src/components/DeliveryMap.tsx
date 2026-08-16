@@ -7,22 +7,37 @@ import L from "leaflet";
 import "leaflet.markercluster";
 import type { DeliveryPoint } from "../services/cdekApi";
 import { PointSchedule } from "./PointSchedule";
+import { PointTypeBadge } from "./PointTypeBadge";
+import { POINT_KIND_LABEL, pointKind } from "../utils/points";
+import type { PointKind } from "../utils/points";
 import "./DeliveryMap.css";
 
-// Custom SVG marker icon
-const svgIcon = (selected: boolean = false) =>
-  L.divIcon({
+/**
+ * Both kinds keep the same pin silhouette so the map reads as one family; only
+ * the glyph inside changes — a dot for a staffed point, locker rows for a
+ * postamat. Colour stays reserved for selection, never for the type.
+ */
+const svgIcon = (kind: PointKind, selected: boolean = false) => {
+  const fill = selected ? "#245326" : "#E9AA44";
+  const glyph =
+    kind === "postamat"
+      ? `<rect x="9.5" y="9" width="9" height="10" rx="1.5" fill="#fff"/>
+         <path d="M9.5 12.33h9M9.5 15.66h9" stroke="${fill}" stroke-width="1.2"/>`
+      : `<circle cx="14" cy="14" r="5" fill="#fff"/>`;
+
+  return L.divIcon({
     className: "",
     html: `
       <svg width="28" height="40" viewBox="0 0 28 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.268 21.732 0 14 0z" fill="${selected ? "#245326" : "#E9AA44"}" stroke="#fff" stroke-width="2"/>
-        <circle cx="14" cy="14" r="5" fill="#fff"/>
+        <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.268 21.732 0 14 0z" fill="${fill}" stroke="#fff" stroke-width="2"/>
+        ${glyph}
       </svg>
     `,
     iconSize: [28, 40],
     iconAnchor: [14, 40],
     popupAnchor: [0, -40],
   });
+};
 
 // Cluster icon
 const clusterIcon = (count: number) =>
@@ -69,7 +84,7 @@ const ClusterMarkers: React.FC<{
   onSelect: (point: DeliveryPoint) => void;
 }> = ({ points, selectedUuid, onSelect }) => {
   const map = useMap();
-  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const markersRef = useRef<Map<string, { marker: L.Marker; kind: PointKind }>>(new Map());
   const previousSelectedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
 
@@ -87,19 +102,20 @@ const ClusterMarkers: React.FC<{
       maxClusterRadius: 50,
     });
 
-    const markers = new Map<string, L.Marker>();
+    const markers = new Map<string, { marker: L.Marker; kind: PointKind }>();
     points.forEach((point) => {
       const lat = point.location.latitude;
       const lng = point.location.longitude;
       if (!lat || !lng) return;
 
+      const kind = pointKind(point.type);
       const marker = L.marker([lat, lng], {
-        icon: svgIcon(false),
+        icon: svgIcon(kind, false),
         title: point.location.address_full ?? point.location.address,
-        alt: `Пункт выдачи ${point.code}`,
+        alt: `${POINT_KIND_LABEL[kind]} ${point.code}`,
       });
       marker.on("click", () => onSelectRef.current(point));
-      markers.set(point.uuid, marker);
+      markers.set(point.uuid, { marker, kind });
       clusterGroup.addLayer(marker);
     });
 
@@ -119,10 +135,12 @@ const ClusterMarkers: React.FC<{
     const previous = previousSelectedRef.current;
 
     if (previous && previous !== selectedUuid) {
-      markers.get(previous)?.setIcon(svgIcon(false));
+      const entry = markers.get(previous);
+      entry?.marker.setIcon(svgIcon(entry.kind, false));
     }
     if (selectedUuid) {
-      markers.get(selectedUuid)?.setIcon(svgIcon(true));
+      const entry = markers.get(selectedUuid);
+      entry?.marker.setIcon(svgIcon(entry.kind, true));
     }
     previousSelectedRef.current = selectedUuid;
   }, [selectedUuid, points]);
@@ -148,7 +166,10 @@ const PointInfoOverlay: React.FC<{
       >
         ✕
       </button>
-      <div className="map-point-overlay__name">{point.code}</div>
+      <div className="map-point-overlay__name">
+        {point.code}
+        <PointTypeBadge type={point.type} />
+      </div>
       <div className="map-point-overlay__address">
         {location.address_full ?? location.address}
       </div>

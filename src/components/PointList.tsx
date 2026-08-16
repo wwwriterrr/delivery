@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DeliveryPoint } from "../services/cdekApi";
 import { PointSchedule } from "./PointSchedule";
+import { PointTypeBadge } from "./PointTypeBadge";
 import "./PointList.css";
 
 const PAGE_SIZE = 40;
@@ -89,7 +90,10 @@ export function PointList({ points, selectedUuid, onSelect, onConfirm }: Props) 
                 aria-expanded={isSelected}
                 onClick={() => onSelect(point)}
               >
-                <span className="point-list__code">{point.code}</span>
+                <span className="point-list__codeline">
+                  <span className="point-list__code">{point.code}</span>
+                  <PointTypeBadge type={point.type} />
+                </span>
                 <span className="point-list__address">{addressOf(point)}</span>
                 {point.nearest_metro_station && (
                   <span className="point-list__metro">м. {point.nearest_metro_station}</span>

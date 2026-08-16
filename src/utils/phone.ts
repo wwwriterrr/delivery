@@ -1,7 +1,21 @@
-/** Digits only, normalised so a leading 8 becomes 7, capped at 11 digits. */
+/**
+ * Digits only, always in the 11-digit `7XXXXXXXXXX` shape, capped at 11.
+ *
+ * Callers may type the number any of the three ways people actually write it:
+ * `+7 900…`, `8 900…`, or just `900…`. Russian area and mobile codes never
+ * begin with 7 or 8 (8 is the trunk prefix), so a leading digit outside those
+ * two can only be the start of a national number missing its country code —
+ * previously that input produced nonsense like `+9 (001) 234-56-7` and left
+ * the field silently invalid.
+ */
 export function normalizeDigits(value: string): string {
-  let raw = value.replace(/\D/g, "");
-  if (raw.startsWith("8")) raw = "7" + raw.slice(1);
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+
+  let raw = digits;
+  if (raw[0] === "8") raw = `7${raw.slice(1)}`;
+  else if (raw[0] !== "7") raw = `7${raw}`;
+
   return raw.slice(0, 11);
 }
 

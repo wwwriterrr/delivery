@@ -44,6 +44,8 @@ export interface DeliveryPointLocation {
 export interface DeliveryPoint {
   code: string;
   uuid: string;
+  /** "PVZ" | "POSTAMAT" — СДЭК may add more, so it stays a plain string. */
+  type?: string;
   address_comment: string;
   nearest_station: string;
   nearest_metro_station: string;
