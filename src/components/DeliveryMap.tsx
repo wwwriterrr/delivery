@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -6,6 +6,7 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import L from "leaflet";
 import "leaflet.markercluster";
 import type { DeliveryPoint } from "../services/cdekApi";
+import { PointSchedule } from "./PointSchedule";
 import "./DeliveryMap.css";
 
 // Custom SVG marker icon
@@ -49,48 +50,82 @@ const ReCenter: React.FC<{ center: [number, number] | null }> = ({ center }) => 
   return null;
 };
 
-// Component to add markers to cluster group
+/** Brings a point chosen from the list into view without yanking the map on every map click. */
+const PanToSelected: React.FC<{ point: DeliveryPoint | null }> = ({ point }) => {
+  const map = useMap();
+  useEffect(() => {
+    const lat = point?.location.latitude;
+    const lng = point?.location.longitude;
+    if (lat == null || lng == null) return;
+    const latLng = L.latLng(lat, lng);
+    if (!map.getBounds().contains(latLng)) map.panTo(latLng, { duration: 0.5 });
+  }, [point, map]);
+  return null;
+};
+
 const ClusterMarkers: React.FC<{
   points: DeliveryPoint[];
   selectedUuid: string | null;
   onSelect: (point: DeliveryPoint) => void;
 }> = ({ points, selectedUuid, onSelect }) => {
   const map = useMap();
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const previousSelectedRef = useRef<string | null>(null);
+  const onSelectRef = useRef(onSelect);
 
   useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
+
+  // Building the cluster layer is expensive (hundreds of markers in Moscow),
+  // so it depends on `points` only — never on the current selection.
+  useEffect(() => {
     const clusterGroup = L.markerClusterGroup({
-      iconCreateFunction: (cluster: L.MarkerCluster) => {
-        const childCount = cluster.getChildCount();
-        return clusterIcon(childCount);
-      },
+      iconCreateFunction: (cluster: L.MarkerCluster) => clusterIcon(cluster.getChildCount()),
       spiderfyOnMaxZoom: false,
       showCoverageOnHover: false,
       maxClusterRadius: 50,
     });
 
+    const markers = new Map<string, L.Marker>();
     points.forEach((point) => {
       const lat = point.location.latitude;
       const lng = point.location.longitude;
       if (!lat || !lng) return;
 
-      const isSelected = point.uuid === selectedUuid;
       const marker = L.marker([lat, lng], {
-        icon: svgIcon(isSelected),
+        icon: svgIcon(false),
+        title: point.location.address_full ?? point.location.address,
+        alt: `Пункт выдачи ${point.code}`,
       });
-
-      marker.on("click", () => {
-        onSelect(point);
-      });
-
+      marker.on("click", () => onSelectRef.current(point));
+      markers.set(point.uuid, marker);
       clusterGroup.addLayer(marker);
     });
 
+    markersRef.current = markers;
+    previousSelectedRef.current = null;
     map.addLayer(clusterGroup);
 
     return () => {
       map.removeLayer(clusterGroup);
+      markersRef.current = new Map();
     };
-  }, [points, selectedUuid, map, onSelect]);
+  }, [points, map]);
+
+  // Selection changes repaint at most two icons instead of rebuilding the layer.
+  useEffect(() => {
+    const markers = markersRef.current;
+    const previous = previousSelectedRef.current;
+
+    if (previous && previous !== selectedUuid) {
+      markers.get(previous)?.setIcon(svgIcon(false));
+    }
+    if (selectedUuid) {
+      markers.get(selectedUuid)?.setIcon(svgIcon(true));
+    }
+    previousSelectedRef.current = selectedUuid;
+  }, [selectedUuid, points]);
 
   return null;
 };
@@ -101,13 +136,16 @@ const PointInfoOverlay: React.FC<{
   onConfirm: () => void;
   onClose: () => void;
 }> = ({ point, onConfirm, onClose }) => {
-  const [scheduleOpen, setScheduleOpen] = useState(false);
   const location = point.location;
-  const workTimeList = point.work_time_list ?? [];
 
   return (
     <div className="map-point-overlay">
-      <button className="map-point-overlay__close" onClick={onClose} type="button">
+      <button
+        className="map-point-overlay__close"
+        onClick={onClose}
+        type="button"
+        aria-label="Закрыть информацию о пункте"
+      >
         ✕
       </button>
       <div className="map-point-overlay__name">{point.code}</div>
@@ -122,29 +160,7 @@ const PointInfoOverlay: React.FC<{
       {point.work_time && (
         <div className="map-point-overlay__time">{point.work_time}</div>
       )}
-      {workTimeList.length > 0 && (
-        <div className="map-point-overlay__schedule-block">
-          <button
-            className="map-point-overlay__schedule-toggle"
-            onClick={() => setScheduleOpen((v) => !v)}
-            type="button"
-          >
-            {scheduleOpen ? "Скрыть" : "Расписание"}
-          </button>
-          {scheduleOpen && (
-            <div className="map-point-overlay__schedule">
-              {workTimeList.map((wt, idx) => (
-                <div key={idx}>
-                  <span className="map-point-overlay__day">
-                    {["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"][wt.day ?? 0] ?? `День ${wt.day}`}
-                  </span>{" "}
-                  — {wt.time}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <PointSchedule workTimeList={point.work_time_list} className="map-point-overlay" />
       <button className="map-point-overlay__confirm" onClick={onConfirm} type="button">
         Выбрать пункт
       </button>
@@ -180,6 +196,7 @@ export const DeliveryMap: React.FC<Props> = ({
           maxZoom={19}
         />
         <ReCenter center={center} />
+        <PanToSelected point={selectedPoint} />
         <ClusterMarkers
           points={points}
           selectedUuid={selectedUuid}
@@ -196,3 +213,5 @@ export const DeliveryMap: React.FC<Props> = ({
     </div>
   );
 };
+
+export default DeliveryMap;

@@ -1,72 +1,82 @@
-import { IS_PRODUCTION, BACKEND_URL } from "../constants";
 import { IconCoin } from "./IconCoin";
 import type { Order } from "../services/cdekApi";
-import "./OrdersPage.css";
+import { resolveImageUrl } from "../utils/media";
+import { bukaLabel, formatOrderDate, tidyAddress } from "../utils/format";
+import "./OrderCard.css";
 
 interface Props {
   order: Order;
   showCoins?: boolean;
 }
 
-function resolveImageUrl(url: string | undefined): string {
-  if (!url) return "";
-  if (IS_PRODUCTION || url.startsWith("http")) return url;
-  return BACKEND_URL + url;
-}
-
-function formatDate(ts: number): string {
-  const date = new Date(ts);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const diff = (today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24);
-  const time = date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-  if (diff === 0) return `Сегодня, ${time}`;
-  if (diff === 1) return `Вчера, ${time}`;
-  return date.toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }) + `, ${time}`;
-}
-
 export function OrderCard({ order, showCoins = true }: Props) {
+  const book = order.book;
+  const contacts = [order.email, order.phone].filter(Boolean).join(" · ");
+
   return (
-    <div className="order-card bento-card">
-      {order.book?.thumbnail && (
+    <article className="order-card">
+      {book?.thumbnail && (
         <img
-          className="order-card__thumbnail"
-          src={resolveImageUrl(order.book.thumbnail)}
-          alt=""
+          className="order-card__cover"
+          src={resolveImageUrl(book.thumbnail)}
+          alt={`Обложка книги «${book.name}»`}
+          width={88}
+          height={128}
+          loading="lazy"
         />
       )}
-      <div className="order-card__info">
-        <div className="order-card__date">{formatDate(order.dt)}</div>
-        {order.book && (
-          <>
-            <div className="order-card__title">{order.book.name}</div>
-            <div className="order-card__author">
-              <span className="order-card__label">Автор:</span> {order.book.author}
-            </div>
-            {order.book.descr && (
-              <div className="order-card__descr">{order.book.descr}</div>
-            )}
-          </>
-        )}
-        {order.name && (
-          <div className="order-card__detail">
-            <span className="order-card__label">Получатель:</span> {order.name}, {order.email}, {order.phone}
-          </div>
-        )}
-        {order.delivery_point && (
-          <div className="order-card__detail">
-            <span className="order-card__label">Пункт выдачи заказа:</span> {order.delivery_point}, {order.delivery_address}
-          </div>
-        )}
-        <div className="order-card__price">
-          {order.book?.price} {showCoins ? <IconCoin width={14} height={16} /> : "₽"}
+
+      <div className="order-card__head">
+        <div className="order-card__eyebrow">
+          <time className="order-card__date">{formatOrderDate(order.dt)}</time>
+          {order.status && <span className="order-card__status">{order.status}</span>}
         </div>
+
+        <h3 className="order-card__title">{book?.name}</h3>
+
+        {book?.author && <p className="order-card__author">{book.author}</p>}
+
+        {/* Placed top-right on wide screens by grid, last on narrow ones, while
+            the DOM keeps the order a screen reader should hear. */}
+        <p className="order-card__price">
+          {book?.price}
+          {showCoins ? (
+            <IconCoin
+              className="order-card__coin"
+              width={17}
+              height={18}
+              role="img"
+              aria-label={bukaLabel(book?.price ?? 0)}
+            />
+          ) : (
+            " ₽"
+          )}
+        </p>
       </div>
-    </div>
+
+      <dl className="order-card__meta">
+        {order.name && (
+          <div className="order-card__row">
+            <dt className="order-card__label">Кому</dt>
+            <dd className="order-card__value">
+              {order.name}
+              {contacts && <span className="order-card__contacts">{contacts}</span>}
+            </dd>
+          </div>
+        )}
+
+        {order.delivery_point && (
+          <div className="order-card__row">
+            <dt className="order-card__label">Куда</dt>
+            <dd className="order-card__value">
+              <span className="order-card__code">{order.delivery_point}</span>
+              {order.delivery_address && (
+                <span className="order-card__address">{tidyAddress(order.delivery_address)}</span>
+              )}
+            </dd>
+          </div>
+        )}
+      </dl>
+    </article>
   );
 }

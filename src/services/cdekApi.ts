@@ -1,5 +1,5 @@
 import { CDEK_ENDPOINTS } from "../constants";
-import { csrfHeaders } from "./csrf";
+import { apiFetch } from "./http";
 
 export interface City {
   city_uuid: string;
@@ -83,48 +83,62 @@ export interface Order {
   email?: string;
   delivery_point?: string;
   delivery_address?: string;
+  /** Not sent by the backend yet; the card renders a chip as soon as it is. */
+  status?: string;
 }
 
 export interface GuestOrder extends Order {
   uuid: string;
 }
 
-export const fetchGuestOrder = async (signal: AbortSignal, params: URLSearchParams): Promise<GuestOrder> => {
-  const url = `${CDEK_ENDPOINTS.submitGuestOrder}?${params.toString()}`;
-  const res = await fetch(url, { signal, headers: csrfHeaders() });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    if (data?.error) throw new Error(data.error);
-    throw new Error(`Guest order request failed: ${res.status}`);
+export interface BookInfo {
+  title: string;
+  description: string;
+  author: string;
+  price: number;
+  thumbnail?: string;
+}
+
+/** The list endpoints answer either with a bare array or `{ items: [...] }`. */
+function toList<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (typeof data === "object" && data !== null) {
+    const { items } = data as { items?: unknown };
+    if (Array.isArray(items)) return items as T[];
   }
-  return res.json();
-};
+  return [];
+}
+
+export const fetchBookInfo = (slug: string, signal: AbortSignal): Promise<BookInfo> =>
+  apiFetch<BookInfo>(CDEK_ENDPOINTS.bookInfo(slug), { signal });
+
+export const verifySession = (signal: AbortSignal): Promise<unknown> =>
+  apiFetch(CDEK_ENDPOINTS.verifySession, { signal });
+
+export const fetchGuestOrder = (signal: AbortSignal, params: URLSearchParams): Promise<GuestOrder> =>
+  apiFetch<GuestOrder>(`${CDEK_ENDPOINTS.submitGuestOrder}?${params.toString()}`, { signal });
 
 export const fetchOrders = async (signal: AbortSignal): Promise<Order[]> => {
-  const res = await fetch(CDEK_ENDPOINTS.submitOrder, { signal, headers: csrfHeaders() });
-  if (!res.ok) throw new Error(`Orders request failed: ${res.status}`);
-  const data = await res.json();
+  const data = await apiFetch<{ orders?: Order[] }>(CDEK_ENDPOINTS.submitOrder, { signal });
   return data.orders ?? [];
 };
 
-export const fetchCities = async (query: string): Promise<City[]> => {
-  const url = `${CDEK_ENDPOINTS.cities}?query=${encodeURIComponent(query)}`;
-
-  const res = await fetch(url.toString(), { headers: csrfHeaders() });
-
-  if (!res.ok) throw new Error(`Cities request failed: ${res.status}`);
-  const data = await res.json();
-  return data.items ?? data;
+export const fetchCities = async (query: string, signal?: AbortSignal): Promise<City[]> => {
+  const data = await apiFetch<unknown>(
+    `${CDEK_ENDPOINTS.cities}?query=${encodeURIComponent(query)}`,
+    { signal }
+  );
+  return toList<City>(data);
 };
 
+/** `cityCode` is the СДЭК city code — `City.code` from the cities endpoint. */
 export const fetchDeliveryPoints = async (
-  cityUuid: string
+  cityCode: string,
+  signal?: AbortSignal
 ): Promise<DeliveryPoint[]> => {
-  const url = `${CDEK_ENDPOINTS.deliveryPoints}?city_uuid=${encodeURIComponent(cityUuid)}`;
-
-  const res = await fetch(url.toString(), { headers: csrfHeaders() });
-
-  if (!res.ok) throw new Error(`Delivery points request failed: ${res.status}`);
-  const data = await res.json();
-  return data.items ?? data;
+  const data = await apiFetch<unknown>(
+    `${CDEK_ENDPOINTS.deliveryPoints}?city_code=${encodeURIComponent(cityCode)}`,
+    { signal }
+  );
+  return toList<DeliveryPoint>(data);
 };

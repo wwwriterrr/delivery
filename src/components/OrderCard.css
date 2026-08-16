@@ -1,0 +1,207 @@
+/*
+ * Order card.
+ *
+ * The card answers two questions in order: what was bought, and where it goes.
+ * The cover holds a left rail across both rows; everything textual is indented
+ * against it. Exactly one element is allowed to be loud — the pickup-point
+ * code — because that is the string the reader actually quotes at the counter.
+ */
+
+.order-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "cover head"
+    "cover meta";
+  column-gap: 20px;
+  row-gap: 14px;
+  padding: 20px 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  color: var(--color-text);
+}
+
+.order-card__cover {
+  grid-area: cover;
+  width: 88px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 8px rgba(36, 83, 38, 0.12);
+}
+
+/* Head ---------------------------------------------------------------- */
+
+.order-card__head {
+  grid-area: head;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "eyebrow eyebrow"
+    "title   price"
+    "author  .";
+  column-gap: 16px;
+  row-gap: 2px;
+  min-width: 0;
+}
+
+.order-card__eyebrow {
+  grid-area: eyebrow;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.order-card__date {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+}
+
+.order-card__status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.order-card__title {
+  grid-area: title;
+  align-self: baseline;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.order-card__price {
+  grid-area: price;
+  align-self: baseline;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+/* The glyph sits high against serif digits without a nudge. */
+.order-card__coin {
+  position: relative;
+  top: 1px;
+}
+
+.order-card__author {
+  grid-area: author;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* Meta ---------------------------------------------------------------- */
+
+.order-card__meta {
+  grid-area: meta;
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.order-card__row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+/* The utility voice of the card: there is only one typeface, so the caption
+   role is carried by case, size and tracking rather than a second family. */
+.order-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--color-text-secondary);
+  opacity: 0.75;
+}
+
+.order-card__value {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.order-card__contacts {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.order-card__code {
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-light);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--color-primary);
+}
+
+.order-card__address {
+  color: var(--color-text-secondary);
+}
+
+/* Mobile -------------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .order-card {
+    grid-template-areas:
+      "cover head"
+      "meta  meta";
+    column-gap: 14px;
+    row-gap: 12px;
+    padding: 16px;
+  }
+
+  .order-card__cover {
+    width: 64px;
+    height: 94px;
+  }
+
+  .order-card__title {
+    font-size: 17px;
+  }
+
+  .order-card__price {
+    font-size: 17px;
+    margin-top: 4px;
+  }
+
+  /* Title and price stop sharing a line here, so the price moves below the
+     author rather than wedging itself between the two. */
+  .order-card__head {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "eyebrow"
+      "title"
+      "author"
+      "price";
+  }
+
+  .order-card__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}

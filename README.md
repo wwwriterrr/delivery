@@ -1,32 +1,64 @@
-# React + TypeScript + Vite
+# cdek-app
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+SPA оформления предзаказа книги с доставкой СДЭК. Собирается Vite и отдаётся
+Django-шаблоном на `https://alterlit.ru` из-под `base: /assets/cdek/`.
 
-Currently, two official plugins are available:
+## Запуск
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Скопируйте `.env.example` в `.env` и заполните значения — dev-прокси в
+`vite.config.ts` подставляет их в каждый запрос к `/api`, чтобы локальный фронт
+ходил на боевой бэкенд от имени авторизованного пользователя:
+
+| Переменная | Что это |
+| --- | --- |
+| `VITE_ALTERLIT_SESSION_ID` | кука `alterlitsessionid` |
+| `VITE_CSRF_TOKEN` | кука `csrftoken`, уходит ещё и заголовком `X-CSRFTOKEN` |
+
+В продакшене эти переменные не используются: страница рендерится внутри
+Django-шаблона на том же origin, поэтому сессионная и CSRF куки уже стоят в
+браузере и едут с каждым same-origin запросом сами.
+
+```bash
+npm run dev      # http://localhost:5173 (порт переопределяется через PORT)
+npm run build    # tsc -b && vite build
+npm run lint     # oxlint
+```
+
+## Маршруты
+
+Таблица маршрутов лежит в [`src/routes/paths.ts`](src/routes/paths.ts) и является
+единственным источником правды: её импортируют и роутер, и `vite.config.ts` —
+чтобы SPA-фолбэк dev-сервера не разъехался с реальными путями.
+
+| URL | Страница |
+| --- | --- |
+| `/preorder/:slug/` | оформление предзаказа |
+| `/orders/` | список заказов |
+| `/pay/success/` | возврат после успешной оплаты |
+| `/pay/fail/` | возврат после неудачной оплаты |
+| остальное | 404 |
+
+Каждая страница — отдельный чанк (`React.lazy`). Leaflet и кластеризация
+подгружаются только после выбора города.
+
+## Структура
+
+```
+src/
+  routes/     таблица маршрутов и конфигурация роутера
+  pages/      компоненты уровня маршрута
+  components/ переиспользуемый UI
+  hooks/      useSession, useBookInfo, useDocumentTitle
+  services/   http-обёртка с типизированными ошибками + клиент API
+  utils/      телефон, картинки, скролл
+```
+
+Все обращения к бэкенду идут через `apiFetch` из
+[`src/services/http.ts`](src/services/http.ts): он навешивает CSRF-заголовок и
+credentials, а любую неудачу превращает в `ApiError`/`NetworkError`. Текст для
+пользователя собирается через `errorMessage()` — сырые статусы и `err.message`
+на экран не попадают.
