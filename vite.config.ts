@@ -8,21 +8,30 @@ import { isAppRoute } from './src/routes/paths.ts'
 
 const BACKEND_URL = 'https://alterlit.ru'
 
-const BASE = '/assets/cdek/'
+/**
+ * Where the built chunks, styles and fonts live — both on disk (`dist/<ASSETS_DIR>/`)
+ * and in the URL (`/<ASSETS_DIR>/…`). Keeping `base` at the site root and moving
+ * the prefix into `assetsDir` is what makes those two mirror each other, so a
+ * request path can be mapped straight onto a file.
+ */
+const ASSETS_DIR = 'assets/books/preorder'
 
-/** Where `npm run dev` should drop you, since the base URL belongs to Django. */
+/** `/` belongs to Django in production; in dev it just drops you into the app. */
 const DEV_LANDING = '/orders/'
 
 const reroutePlugin: Plugin = {
   name: 'reroute-plugin',
+  // Lets index.html point at files under public/ without repeating the prefix.
+  transformIndexHtml(html: string) {
+    return html.replaceAll('%ASSETS_DIR%', ASSETS_DIR)
+  },
   configureServer(server: ViteDevServer) {
     server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next: (err?: Error) => void) => {
       const pathname = req.url?.split(/[?#]/)[0]
 
-      // `/assets/cdek/` is Django's static prefix, not an app route. Vite
-      // redirects `/` here on its own, which otherwise lands the developer on
-      // the SPA's 404 at a URL the SPA does not own.
-      if (pathname === BASE || pathname === BASE.slice(0, -1)) {
+      // The site root is Django's, not an app route, so landing there would
+      // show the SPA's own 404. In dev, send the developer into the app instead.
+      if (pathname === '/') {
         res.statusCode = 302
         res.setHeader('Location', DEV_LANDING)
         res.end()
@@ -56,7 +65,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), reroutePlugin],
-    base: '/assets/cdek/',
+    base: '/',
+    build: {
+      assetsDir: ASSETS_DIR,
+    },
     server: {
       port: Number(process.env.PORT) || 5173,
       proxy: {

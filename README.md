@@ -1,7 +1,33 @@
 # cdek-app
 
 SPA оформления предзаказа книги с доставкой СДЭК. Собирается Vite и отдаётся
-Django-шаблоном на `https://alterlit.ru` из-под `base: /assets/cdek/`.
+Django-шаблоном на `https://alterlit.ru`.
+
+## Сборка и раздача
+
+`npm run build` кладёт всё в `dist/`:
+
+```
+dist/
+  index.html                     ← шаблон, его рендерит Django
+  assets/books/preorder/         ← чанки, стили, шрифты, favicon
+  preorder/[slug]/index.html     ← копия шаблона для маршрута предзаказа
+```
+
+URL и путь на диске совпадают один в один: файл
+`dist/assets/books/preorder/index-abc.js` запрашивается как
+`/assets/books/preorder/index-abc.js`. Это достигается тем, что `base`
+оставлен равным `/`, а префикс задан в `build.assetsDir` — если поместить
+префикс в `base`, физическая раскладка перестанет соответствовать URL.
+
+Префикс задаётся один раз константой `ASSETS_DIR` в
+[`vite.config.ts`](vite.config.ts). Ссылки в `index.html` на файлы из
+`public/` используют плейсхолдер `%ASSETS_DIR%`, чтобы путь не дублировался.
+Всё содержимое `public/` лежит в `public/assets/books/preorder/` — так оно
+попадает под тот же префикс, что и собранные ассеты.
+
+Django должен отдавать `dist/assets/books/preorder/` по адресу
+`/assets/books/preorder/`.
 
 ## Запуск
 

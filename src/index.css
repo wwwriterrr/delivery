@@ -1,8 +1,8 @@
 /*
  * PT Serif is the project typeface. Files ship via @fontsource, so the build
  * emits and fingerprints them itself — the previous hand-written @font-face
- * rules pointed at /assets/cdek/fonts/*.woff2, which never existed in the
- * repo, and every page silently fell back to Georgia.
+ * rules pointed at woff2 files that never existed in the repo, and every page
+ * silently fell back to Georgia.
  * Only the subsets we actually render are imported (cyrillic + latin, 400/700).
  */
 @import "@fontsource/pt-serif/cyrillic-400.css";
