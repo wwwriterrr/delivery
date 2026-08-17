@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchBookInfo } from "../services/cdekApi";
 import type { BookInfo } from "../services/cdekApi";
 import { errorMessage, isAbortError } from "../services/http";
@@ -7,16 +7,12 @@ interface BookInfoState {
   book: BookInfo | null;
   error: string | null;
   loading: boolean;
-  reload: () => void;
 }
 
 export function useBookInfo(slug: string): BookInfoState {
   const [book, setBook] = useState<BookInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [attempt, setAttempt] = useState(0);
-
-  const reload = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -41,7 +37,7 @@ export function useBookInfo(slug: string): BookInfoState {
       });
 
     return () => controller.abort();
-  }, [slug, attempt]);
+  }, [slug]);
 
-  return { book, error, loading, reload };
+  return { book, error, loading };
 }

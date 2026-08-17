@@ -1,0 +1,65 @@
+.balance-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.balance-line__label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
+.balance-line__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.balance-line__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+/*
+ * Deliberately quiet: on the insufficient-balance screen the error card below
+ * already carries the primary "Пополнить баланс" call to action, and two solid
+ * amber buttons would compete for the same click.
+ */
+.balance-line__topup {
+  padding: 5px 14px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: var(--color-accent);
+    color: #fff;
+  }
+}
+
+/* When the balance cannot cover the book, it stops being a neutral fact. */
+.balance-line--short {
+  border-color: #f0cfa0;
+  background: var(--color-accent-light);
+}

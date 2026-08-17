@@ -37,6 +37,18 @@
   color: var(--color-text-secondary);
 }
 
+.book-card__author-link {
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--color-accent-hover);
+  }
+}
+
 .book-card__price {
   font-family: var(--font-heading);
   font-size: 20px;

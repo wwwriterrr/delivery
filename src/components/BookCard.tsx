@@ -24,7 +24,21 @@ export function BookCard({ book, authenticated }: Props) {
         )}
         <div className="book-card__text">
           <div className="book-card__title">{book.title}</div>
-          <div className="book-card__author">Автор: {book.author}</div>
+          <div className="book-card__author">
+            Автор:{" "}
+            {book.author_url ? (
+              <a
+                className="book-card__author-link"
+                href={book.author_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {book.author}
+              </a>
+            ) : (
+              book.author
+            )}
+          </div>
           <div className="book-card__price">
             {book.price}{" "}
             {authenticated ? (

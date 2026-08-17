@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom";
 import type { City, DeliveryPoint } from "../services/cdekApi";
 import { fetchDeliveryPoints } from "../services/cdekApi";
-import { CDEK_ENDPOINTS, BACKEND_URL } from "../constants";
+import { CDEK_ENDPOINTS, BACKEND_URL, TOPUP_URL } from "../constants";
 import { apiFetch, errorMessage, isAbortError } from "../services/http";
 import { useSession } from "../hooks/useSession";
 import { useBookInfo } from "../hooks/useBookInfo";
@@ -11,6 +11,8 @@ import { CitySearch } from "../components/CitySearch";
 import { SelectedPoint } from "../components/SelectedPoint";
 import { PointList } from "../components/PointList";
 import { BookCard } from "../components/BookCard";
+import { BalanceLine } from "../components/BalanceLine";
+import { SupportNotice } from "../components/SupportNotice";
 import { ErrorState } from "../components/ErrorState";
 import { PageLoader } from "../components/PageLoader";
 import { PaymentSuccess } from "../components/PaymentSuccess";
@@ -18,7 +20,6 @@ import { IconCoin } from "../components/IconCoin";
 import { bukaLabel } from "../utils/format";
 import { formatPhone, isCompletePhone, toBackendPhone } from "../utils/phone";
 import { scrollIntoView } from "../utils/scroll";
-import { ordersUrl } from "../routes/paths";
 import "../App.css";
 
 // Leaflet and its cluster plugin are the heaviest part of the bundle and are
@@ -37,7 +38,7 @@ const NAME_PATTERN = /^[a-zA-ZА-Яа-яЁёЀ-ӿ\-'\s]{2,}$/;
 export function PreorderPage() {
   const { slug = "" } = useParams<{ slug: string }>();
   const session = useSession();
-  const { book, error: bookError, loading: bookLoading, reload: reloadBook } = useBookInfo(slug);
+  const { book, error: bookError, loading: bookLoading } = useBookInfo(slug);
 
   useDocumentTitle(book ? `Предзаказ: ${book.title}` : "Оформление предзаказа");
 
@@ -50,7 +51,6 @@ export function PreorderPage() {
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
   const [loadingPoints, setLoadingPoints] = useState(false);
   const [pointsError, setPointsError] = useState<string | null>(null);
-  const [pointsAttempt, setPointsAttempt] = useState(0);
 
   const pointsSectionRef = useRef<HTMLDivElement>(null);
   // Set when the user picks a city, cleared once we have actually scrolled, so
@@ -99,7 +99,7 @@ export function PreorderPage() {
       });
 
     return () => controller.abort();
-  }, [selectedCity, pointsAttempt]);
+  }, [selectedCity]);
 
   // Once the points are on screen, bring the map into view: the pickup-point
   // card renders below the fold, so on a phone the city choice looked like it
@@ -179,7 +179,7 @@ export function PreorderPage() {
     return Object.keys(newErrors).length === 0;
   }, [fullName, phone, email]);
 
-  const authenticated = session === "authenticated";
+  const authenticated = session.status === "authenticated";
   const detailsComplete =
     fullName.trim().length > 0 &&
     isCompletePhone(phone) &&
@@ -254,7 +254,7 @@ export function PreorderPage() {
 
   // Nothing renders until both the book and the session are known: guessing
   // either makes the price and the consent checkbox flip after first paint.
-  if (bookLoading || session === "unknown") {
+  if (bookLoading || session.status === "unknown") {
     return (
       <div className="app">
         <PageLoader text="Загрузка информации о книге..." />
@@ -270,12 +270,6 @@ export function PreorderPage() {
         <ErrorState
           title="Не удалось открыть предзаказ"
           message={bookError ?? "Информация о книге недоступна."}
-          onRetry={reloadBook}
-          action={
-            <a className="error-state__link" href={ordersUrl()}>
-              Мои заказы
-            </a>
-          }
         />
       </div>
     );
@@ -284,7 +278,33 @@ export function PreorderPage() {
   if (orderSuccess) {
     return (
       <div className="app">
-        <PaymentSuccess />
+        <PaymentSuccess showOrdersLink />
+      </div>
+    );
+  }
+
+  const balance = session.balance;
+
+  // Guests pay by card, so the balance gate applies to signed-in readers only.
+  // Their order is settled in буки, and an underfunded account cannot complete
+  // it — showing the form would only lead to a failure at the last step.
+  if (authenticated && balance && balance.books < book.price) {
+    return (
+      <div className="app">
+        <h1 className="app__title">Оформление предзаказа</h1>
+        <BalanceLine books={balance.books} short />
+        {/* The book stays on screen: it is what the reader came for, and the
+            shortfall only makes sense next to what it is a shortfall for. */}
+        <BookCard book={book} authenticated />
+        <ErrorState
+          title="Недостаточно буков"
+          message={`Книга стоит ${book.price} ${bukaLabel(book.price)}, а на вашем счету ${balance.books}. Пополните баланс, и предзаказ можно будет оформить.`}
+          action={
+            <a className="error-state__link" href={TOPUP_URL}>
+              Пополнить баланс
+            </a>
+          }
+        />
       </div>
     );
   }
@@ -293,7 +313,11 @@ export function PreorderPage() {
     <div className="app">
       <h1 className="app__title">Оформление предзаказа</h1>
 
+      {balance && <BalanceLine books={balance.books} />}
+
       <BookCard book={book} authenticated={authenticated} />
+
+      <SupportNotice />
 
       <form
         className="bento-grid"
@@ -409,12 +433,7 @@ export function PreorderPage() {
 
             {loadingPoints && <PageLoader text="Загрузка пунктов выдачи..." compact />}
 
-            {pointsError && (
-              <ErrorState
-                message={pointsError}
-                onRetry={() => setPointsAttempt((n) => n + 1)}
-              />
-            )}
+            {pointsError && <ErrorState message={pointsError} />}
 
             {!loadingPoints && !pointsError && deliveryPoints.length === 0 && (
               <div className="error-message" role="status">

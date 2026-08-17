@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchOrders } from "../services/cdekApi";
 import type { Order } from "../services/cdekApi";
 import { errorMessage, classifyError, isAbortError } from "../services/http";
@@ -6,7 +6,6 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { OrderCard } from "../components/OrderCard";
 import { ErrorState } from "../components/ErrorState";
 import { PageLoader } from "../components/PageLoader";
-import { BACKEND_URL } from "../constants";
 import "../App.css";
 import "../components/OrdersPage.css";
 
@@ -17,9 +16,6 @@ export function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -46,7 +42,7 @@ export function OrdersPage() {
       });
 
     return () => controller.abort();
-  }, [attempt]);
+  }, []);
 
   if (loading) {
     return (
@@ -63,15 +59,6 @@ export function OrdersPage() {
         <ErrorState
           title={needsLogin ? "Нужен вход в аккаунт" : "Не удалось загрузить заказы"}
           message={error}
-          onRetry={retry}
-          action={
-            needsLogin ? (
-              // TODO: point at the real Django login URL once it is known.
-              <a className="error-state__link" href={BACKEND_URL}>
-                На сайт
-              </a>
-            ) : undefined
-          }
         />
       </div>
     );

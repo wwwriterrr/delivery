@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { verifySession } from "../services/cdekApi";
+import { fetchBalance } from "../services/cdekApi";
+import type { Balance } from "../services/cdekApi";
 import { isAbortError } from "../services/http";
 
 /**
@@ -7,23 +8,33 @@ import { isAbortError } from "../services/http";
  * boolean early: guessing "authenticated" makes the price flip from coins to
  * roubles and pops the consent checkbox in after first paint.
  */
-export type SessionState = "unknown" | "authenticated" | "guest";
+export type SessionStatus = "unknown" | "authenticated" | "guest";
 
-export function useSession(): SessionState {
-  const [state, setState] = useState<SessionState>("unknown");
+export interface Session {
+  status: SessionStatus;
+  /** Present only for an authenticated reader. */
+  balance: Balance | null;
+}
+
+/**
+ * The balance endpoint answers only for a valid session, so one request
+ * settles both questions: who the reader is, and what they can afford.
+ */
+export function useSession(): Session {
+  const [session, setSession] = useState<Session>({ status: "unknown", balance: null });
 
   useEffect(() => {
     const controller = new AbortController();
 
-    verifySession(controller.signal)
-      .then(() => setState("authenticated"))
+    fetchBalance(controller.signal)
+      .then((balance) => setSession({ status: "authenticated", balance }))
       .catch((err: unknown) => {
         // Any failure — 403 or offline — means we treat the visitor as a guest.
-        if (!isAbortError(err)) setState("guest");
+        if (!isAbortError(err)) setSession({ status: "guest", balance: null });
       });
 
     return () => controller.abort();
   }, []);
 
-  return state;
+  return session;
 }

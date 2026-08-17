@@ -1,0 +1,50 @@
+/*
+ * An aside, not an error: it uses the accent tint rather than the error red,
+ * so it reads as help on offer instead of something having gone wrong.
+ */
+.support-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.support-notice__icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-accent);
+}
+
+.support-notice__text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.support-notice__mail {
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--color-accent-hover);
+  }
+}
+
+@media (max-width: 560px) {
+  .support-notice {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .support-notice__text {
+    font-size: 13px;
+  }
+}

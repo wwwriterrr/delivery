@@ -5,15 +5,15 @@
 const BUKA_FORMS: Record<string, string> = {
   one: "бука",
   few: "буки",
-  many: "бук",
+  many: "буков",
   other: "буки",
 };
 
 const bukaPluralRules = new Intl.PluralRules("ru-RU");
 
-/** The correct form of "бука" for an amount: 1 бука, 2 буки, 1100 бук. */
+/** The correct form of "бука" for an amount: 1 бука, 2 буки, 1100 буков. */
 export function bukaLabel(amount: number): string {
-  return BUKA_FORMS[bukaPluralRules.select(amount)] ?? "бук";
+  return BUKA_FORMS[bukaPluralRules.select(amount)] ?? "буков";
 }
 
 /** `dt` arrives from the backend in milliseconds. */

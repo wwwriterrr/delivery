@@ -11,7 +11,12 @@ import "./PaymentSuccess.css";
  * place while the reader is parked at the bottom of a long form, and the
  * confirmation would otherwise land off-screen.
  */
-export function PaymentSuccess() {
+interface Props {
+  /** Only a signed-in reader has an orders page worth linking to. */
+  showOrdersLink?: boolean;
+}
+
+export function PaymentSuccess({ showOrdersLink = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,9 +47,11 @@ export function PaymentSuccess() {
         заказа можно будет отслеживать в личном кабинете СДЭК.
       </p>
 
-      <a className="payment-success__cta" href={ordersUrl()}>
-        Перейти к заказам
-      </a>
+      {showOrdersLink && (
+        <a className="payment-success__cta" href={ordersUrl()}>
+          Перейти к заказам
+        </a>
+      )}
     </div>
   );
 }

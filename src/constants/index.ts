@@ -6,6 +6,12 @@ export const IS_PRODUCTION = import.meta.env.PROD;
 
 export const BACKEND_URL = "https://alterlit.ru";
 
+/** The single channel we point readers to whenever something goes wrong. */
+export const SUPPORT_EMAIL = "alterlit@mail.ru";
+
+/** Where a reader tops up the "бука" balance. */
+export const TOPUP_URL = `${BACKEND_URL}/pay/?currency=books`;
+
 /**
  * In production the SPA is served by Django from BACKEND_URL, so these stay
  * same-origin and the session cookie is sent automatically. In dev the paths
@@ -24,7 +30,8 @@ export const CDEK_ENDPOINTS = {
   submitGuestOrder: apiUrl("/api/v1/cdek/order/guest/"),
   guestPay: apiUrl("/api/v1/pay/guest/"),
   bookInfo: (slug: string) => apiUrl(`/api/v1/preorder/info/${slug}/`),
-  verifySession: apiUrl("/api/v1/users/session/verify/"),
+  /** Doubles as the session check: it only answers for a valid session. */
+  balance: apiUrl("/api/v1/users/balance/"),
 } as const;
 
 export const POPULAR_CITIES = [

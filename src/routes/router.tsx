@@ -39,10 +39,7 @@ function RouteErrorBoundary() {
   return (
     <div className="app">
       <h1 className="app__title">Что-то сломалось</h1>
-      <ErrorState
-        message="Страница не смогла загрузиться. Обновите её — если это не поможет, попробуйте позже."
-        onRetry={() => window.location.reload()}
-      />
+      <ErrorState message="Страница не смогла загрузиться." />
     </div>
   );
 }

@@ -97,6 +97,8 @@ export interface BookInfo {
   title: string;
   description: string;
   author: string;
+  /** When present, the author's name becomes a link to their page. */
+  author_url?: string;
   price: number;
   thumbnail?: string;
 }
@@ -114,8 +116,14 @@ function toList<T>(data: unknown): T[] {
 export const fetchBookInfo = (slug: string, signal: AbortSignal): Promise<BookInfo> =>
   apiFetch<BookInfo>(CDEK_ENDPOINTS.bookInfo(slug), { signal });
 
-export const verifySession = (signal: AbortSignal): Promise<unknown> =>
-  apiFetch(CDEK_ENDPOINTS.verifySession, { signal });
+export interface Balance {
+  lits: number;
+  books: number;
+}
+
+/** Answers only for a valid session, so it doubles as the session check. */
+export const fetchBalance = (signal: AbortSignal): Promise<Balance> =>
+  apiFetch<Balance>(CDEK_ENDPOINTS.balance, { signal });
 
 export const fetchGuestOrder = (signal: AbortSignal, params: URLSearchParams): Promise<GuestOrder> =>
   apiFetch<GuestOrder>(`${CDEK_ENDPOINTS.submitGuestOrder}?${params.toString()}`, { signal });

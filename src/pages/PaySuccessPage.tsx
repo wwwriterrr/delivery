@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchGuestOrder } from "../services/cdekApi";
 import type { GuestOrder } from "../services/cdekApi";
@@ -8,7 +8,6 @@ import { OrderCard } from "../components/OrderCard";
 import { PaymentSuccess } from "../components/PaymentSuccess";
 import { ErrorState } from "../components/ErrorState";
 import { PageLoader } from "../components/PageLoader";
-import { ordersUrl } from "../routes/paths";
 import "../App.css";
 import "../components/OrdersPage.css";
 
@@ -21,9 +20,6 @@ export function PaySuccessPage() {
   const [order, setOrder] = useState<GuestOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
-
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   const missing = useMemo(
     () => REQUIRED_PARAMS.filter((key) => !searchParams.get(key)),
@@ -61,19 +57,14 @@ export function PaySuccessPage() {
       });
 
     return () => controller.abort();
-  }, [searchParams, missing, attempt]);
+  }, [searchParams, missing]);
 
   if (missing.length > 0) {
     return (
       <div className="app">
         <h1 className="app__title">Ссылка неполная</h1>
         <ErrorState
-          message={`В адресе не хватает параметров оплаты: ${missing.join(", ")}. Откройте страницу по ссылке из письма или посмотрите заказ в личном кабинете.`}
-          action={
-            <a className="error-state__link" href={ordersUrl()}>
-              Мои заказы
-            </a>
-          }
+          message={`В адресе не хватает параметров оплаты: ${missing.join(", ")}. Откройте страницу по ссылке из письма.`}
         />
       </div>
     );
@@ -91,15 +82,7 @@ export function PaySuccessPage() {
     return (
       <div className="app">
         <h1 className="app__title">Оплата прошла успешно!</h1>
-        <ErrorState
-          message={error}
-          onRetry={retry}
-          action={
-            <a className="error-state__link" href={ordersUrl()}>
-              Мои заказы
-            </a>
-          }
-        />
+        <ErrorState message={error} />
       </div>
     );
   }
