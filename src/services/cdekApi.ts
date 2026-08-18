@@ -74,6 +74,12 @@ export interface Book {
   thumbnail?: string;
   price: number;
   author: string;
+  author_url?: string;
+  width?: number;
+  weight?: number;
+  height?: number;
+  length?: number;
+  isbn?: string;
 }
 
 export interface Order {

@@ -34,10 +34,12 @@ export function OrderCard({ order, showCoins = true }: Props) {
 
         <h3 className="order-card__title">{book?.name}</h3>
 
-        {book?.author && <p className="order-card__author">{book.author}</p>}
+        {book?.author && <p className="order-card__author">
+          {book.author_url ? (
+            <a href={book.author_url} target="_blank">{book.author}</a>
+          ) : (book.author)}
+        </p>}
 
-        {/* Placed top-right on wide screens by grid, last on narrow ones, while
-            the DOM keeps the order a screen reader should hear. */}
         <p className="order-card__price">
           {book?.price}
           {showCoins ? (
