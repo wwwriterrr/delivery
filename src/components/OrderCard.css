@@ -79,6 +79,7 @@
   font-weight: 700;
   line-height: 1.25;
   min-width: 0;
+  text-align: left;
 }
 
 .order-card__price {
