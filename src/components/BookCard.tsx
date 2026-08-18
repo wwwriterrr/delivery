@@ -2,6 +2,7 @@ import type { BookInfo } from "../services/cdekApi";
 import { resolveImageUrl } from "../utils/media";
 import { bukaLabel } from "../utils/format";
 import { IconCoin } from "./IconCoin";
+import { ExpandableText } from "./ExpandableText";
 import "./BookCard.css";
 
 interface Props {
@@ -49,7 +50,7 @@ export function BookCard({ book, authenticated }: Props) {
           </div>
         </div>
       </div>
-      <div className="book-card__description">{book.description}</div>
+      <ExpandableText className="book-card__description" text={book.description} />
     </div>
   );
 }
