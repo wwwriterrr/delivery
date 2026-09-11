@@ -65,3 +65,40 @@
   line-height: 1.6;
   white-space: pre-line;
 }
+
+/* Quantity ------------------------------------------------------------ */
+
+/* The unit price only needs spelling out once a total sits next to it. */
+.book-card__price-unit {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.book-card__quantity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.book-card__total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.book-card__total-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.book-card__total-value {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-accent);
+}

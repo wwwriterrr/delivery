@@ -91,6 +91,8 @@ export interface Order {
   email?: string;
   delivery_point?: string;
   delivery_address?: string;
+  /** How many copies were ordered. The backend defaults it to 1. */
+  quantity: number;
   /** Not sent by the backend yet; the card renders a chip as soon as it is. */
   status?: string;
 }

@@ -63,3 +63,9 @@
   border-color: #f0cfa0;
   background: var(--color-accent-light);
 }
+
+/* A re-read is quick, so the amount fades rather than being replaced by a
+   spinner: the number stays readable and the page does not move. */
+.balance-line--checking .balance-line__value {
+  opacity: 0.45;
+}

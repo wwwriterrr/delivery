@@ -82,28 +82,48 @@
   text-align: left;
 }
 
-.order-card__price {
+.order-card__amount {
   grid-area: price;
   align-self: baseline;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.order-card__price {
   font-size: 20px;
   font-weight: 700;
   color: var(--color-accent);
-  white-space: nowrap;
 }
 
-/* The glyph sits high against serif digits without a nudge. */
-.order-card__coin {
-  position: relative;
-  top: 1px;
+/* The arithmetic behind the total, quiet enough not to compete with it. */
+.order-card__breakdown {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 .order-card__author {
   grid-area: author;
   font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+/* The link keeps the author's own quiet voice and is marked as a link by the
+   underline alone: the loud element on this card is the pickup-point code, and
+   a second accent-coloured line here would compete with it. The colour only
+   comes in on hover, which is where the accent belongs. */
+.order-card__author-link {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--color-accent-hover);
+  }
 }
 
 /* Meta ---------------------------------------------------------------- */
@@ -187,6 +207,12 @@
 
   .order-card__price {
     font-size: 17px;
+  }
+
+  /* The amount is on its own row down here, so it reads left-aligned with
+     everything above it rather than pinned to the far edge. */
+  .order-card__amount {
+    align-items: flex-start;
     margin-top: 4px;
   }
 

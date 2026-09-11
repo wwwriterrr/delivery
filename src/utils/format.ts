@@ -9,11 +9,23 @@ const BUKA_FORMS: Record<string, string> = {
   other: "буки",
 };
 
-const bukaPluralRules = new Intl.PluralRules("ru-RU");
+const BOOK_FORMS: Record<string, string> = {
+  one: "книга",
+  few: "книги",
+  many: "книг",
+  other: "книги",
+};
+
+const pluralRules = new Intl.PluralRules("ru-RU");
 
 /** The correct form of "бука" for an amount: 1 бука, 2 буки, 1100 буков. */
 export function bukaLabel(amount: number): string {
-  return BUKA_FORMS[bukaPluralRules.select(amount)] ?? "буков";
+  return BUKA_FORMS[pluralRules.select(amount)] ?? "буков";
+}
+
+/** The correct form of "книга" for a count: 1 книга, 2 книги, 5 книг. */
+export function bookLabel(count: number): string {
+  return BOOK_FORMS[pluralRules.select(count)] ?? "книг";
 }
 
 /** `dt` arrives from the backend in milliseconds. */

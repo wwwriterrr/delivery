@@ -1,0 +1,12 @@
+.price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* The glyph sits high against serif digits without a nudge. */
+.price__coin {
+  position: relative;
+  top: 1px;
+}

@@ -2,7 +2,13 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom";
 import type { City, DeliveryPoint } from "../services/cdekApi";
 import { fetchDeliveryPoints } from "../services/cdekApi";
-import { CDEK_ENDPOINTS, BACKEND_URL, TOPUP_URL } from "../constants";
+import {
+  CDEK_ENDPOINTS,
+  BACKEND_URL,
+  TOPUP_URL,
+  MAX_BOOKS_PER_ORDER,
+  BALANCE_RECHECK_DELAY_MS,
+} from "../constants";
 import { apiFetch, errorMessage, isAbortError } from "../services/http";
 import { useSession } from "../hooks/useSession";
 import { useBookInfo } from "../hooks/useBookInfo";
@@ -16,8 +22,9 @@ import { SupportNotice } from "../components/SupportNotice";
 import { ErrorState } from "../components/ErrorState";
 import { PageLoader } from "../components/PageLoader";
 import { PaymentSuccess } from "../components/PaymentSuccess";
-import { IconCoin } from "../components/IconCoin";
-import { bukaLabel } from "../utils/format";
+import { OrderTotal } from "../components/OrderTotal";
+import { Price } from "../components/Price";
+import { bookLabel, bukaLabel } from "../utils/format";
 import { formatPhone, isCompletePhone, toBackendPhone } from "../utils/phone";
 import { scrollIntoView } from "../utils/scroll";
 import "../App.css";
@@ -42,6 +49,7 @@ export function PreorderPage() {
 
   useDocumentTitle(book ? `Предзаказ: ${book.title}` : "Оформление предзаказа");
 
+  const [quantity, setQuantity] = useState(1);
   const [consentGiven, setConsentGiven] = useState(false);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [deliveryPoints, setDeliveryPoints] = useState<DeliveryPoint[]>([]);
@@ -111,6 +119,30 @@ export function PreorderPage() {
     scrollIntoView(pointsSectionRef.current);
   }, [loadingPoints, mapVisible, pointsError, deliveryPoints]);
 
+  const authenticated = session.status === "authenticated";
+  const refreshBalance = session.refresh;
+
+  // The balance is re-read whenever the quantity moves: буки can be spent in
+  // another tab, and the check below is only worth making against a current
+  // number. The delay collapses a reader holding "+" down into one request
+  // instead of twenty.
+  //
+  // What is remembered is the quantity the balance was last read for, not
+  // whether this is the first run: that keeps the mount quiet — useSession has
+  // just read the balance itself — and also skips the request when a reader
+  // steps up and back down again within the delay.
+  const checkedQuantity = useRef(quantity);
+  useEffect(() => {
+    if (!authenticated || checkedQuantity.current === quantity) return;
+
+    const timer = setTimeout(() => {
+      checkedQuantity.current = quantity;
+      refreshBalance();
+    }, BALANCE_RECHECK_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [quantity, authenticated, refreshBalance]);
+
   const handleCitySelect = useCallback((city: City | null) => {
     pendingScrollRef.current = city !== null;
     setSelectedCity(city);
@@ -179,7 +211,6 @@ export function PreorderPage() {
     return Object.keys(newErrors).length === 0;
   }, [fullName, phone, email]);
 
-  const authenticated = session.status === "authenticated";
   const detailsComplete =
     fullName.trim().length > 0 &&
     isCompletePhone(phone) &&
@@ -205,6 +236,7 @@ export function PreorderPage() {
       delivery_point: confirmedPoint.code,
       delivery_address: confirmedPoint.location.address_full ?? confirmedPoint.location.address,
       slug,
+      quantity,
     };
 
     try {
@@ -234,7 +266,9 @@ export function PreorderPage() {
             email: email.trim(),
             phone: toBackendPhone(phone),
             description: `Предзаказ книги ${book.author}: ${book.title}`,
-            amount: book.price,
+            // The invoice has to match the order created a moment ago, so the
+            // amount is the same arithmetic the form has been showing.
+            amount: book.price * quantity,
             action: "preorder",
           }),
         });
@@ -250,7 +284,7 @@ export function PreorderPage() {
       );
       setSubmitting(false);
     }
-  }, [book, confirmedPoint, validateAll, fullName, phone, email, slug, authenticated]);
+  }, [book, confirmedPoint, validateAll, fullName, phone, email, slug, quantity, authenticated]);
 
   // Nothing renders until both the book and the session are known: guessing
   // either makes the price and the consent checkbox flip after first paint.
@@ -284,21 +318,34 @@ export function PreorderPage() {
   }
 
   const balance = session.balance;
+  const totalPrice = book.price * quantity;
 
   // Guests pay by card, so the balance gate applies to signed-in readers only.
   // Their order is settled in буки, and an underfunded account cannot complete
   // it — showing the form would only lead to a failure at the last step.
-  if (authenticated && balance && balance.books < book.price) {
+  if (authenticated && balance && balance.books < totalPrice) {
     return (
       <div className="app">
         <h1 className="app__title">Оформление предзаказа</h1>
-        <BalanceLine books={balance.books} short />
+        <BalanceLine books={balance.books} short checking={session.checking} />
         {/* The book stays on screen: it is what the reader came for, and the
-            shortfall only makes sense next to what it is a shortfall for. */}
-        <BookCard book={book} authenticated />
+            shortfall only makes sense next to what it is a shortfall for. The
+            picker comes with it, because for anything past one copy the way
+            out of this screen is to ask for fewer — not only to top up. */}
+        <BookCard
+          book={book}
+          authenticated
+          quantity={quantity}
+          onQuantityChange={setQuantity}
+          maxQuantity={MAX_BOOKS_PER_ORDER}
+        />
         <ErrorState
           title="Недостаточно буков"
-          message={`Книга стоит ${book.price} ${bukaLabel(book.price)}, а на вашем счету ${balance.books}. Пополните баланс, и предзаказ можно будет оформить.`}
+          message={
+            quantity > 1
+              ? `${quantity} ${bookLabel(quantity)} по ${book.price} — это ${totalPrice} ${bukaLabel(totalPrice)}, а на вашем счету ${balance.books}. Уменьшите количество или пополните баланс.`
+              : `Книга стоит ${book.price} ${bukaLabel(book.price)}, а на вашем счету ${balance.books}. Пополните баланс, и предзаказ можно будет оформить.`
+          }
           action={
             <a className="error-state__link" href={TOPUP_URL}>
               Пополнить баланс
@@ -313,9 +360,15 @@ export function PreorderPage() {
     <div className="app">
       <h1 className="app__title">Оформление предзаказа</h1>
 
-      {balance && <BalanceLine books={balance.books} />}
+      {balance && <BalanceLine books={balance.books} checking={session.checking} />}
 
-      <BookCard book={book} authenticated={authenticated} />
+      <BookCard
+        book={book}
+        authenticated={authenticated}
+        quantity={quantity}
+        onQuantityChange={setQuantity}
+        maxQuantity={MAX_BOOKS_PER_ORDER}
+      />
 
       <SupportNotice />
 
@@ -499,6 +552,8 @@ export function PreorderPage() {
               </span>
             </label>
 
+            <OrderTotal quantity={quantity} unitPrice={book.price} coins={authenticated} />
+
             <button className="submit-btn" type="submit" disabled={!isFormValid || submitting}>
               {submitting ? (
                 "Отправка..."
@@ -507,13 +562,10 @@ export function PreorderPage() {
               ) : !consentGiven ? (
                 // Once the form itself is complete, name the one thing left.
                 "Подтвердите согласие на обработку данных"
-              ) : authenticated ? (
-                <>
-                  Оплатить {book.price}{" "}
-                  <IconCoin width={18} height={20} role="img" aria-label={bukaLabel(book.price)} />
-                </>
               ) : (
-                <>Оплатить {book.price} ₽</>
+                <>
+                  Оплатить <Price value={totalPrice} coins={authenticated} />
+                </>
               )}
             </button>
           </>

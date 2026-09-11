@@ -34,6 +34,15 @@ export const CDEK_ENDPOINTS = {
   balance: apiUrl("/api/v1/users/balance/"),
 } as const;
 
+/** Hard cap on one preorder — anything larger is a wholesale conversation. */
+export const MAX_BOOKS_PER_ORDER = 20;
+
+/**
+ * How long a quantity change has to settle before the balance is re-read.
+ * Long enough that holding "+" down costs one request instead of twenty.
+ */
+export const BALANCE_RECHECK_DELAY_MS = 500;
+
 export const POPULAR_CITIES = [
   "Москва",
   "Санкт-Петербург",

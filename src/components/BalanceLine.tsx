@@ -7,12 +7,18 @@ interface Props {
   books: number;
   /** Highlights the balance when it will not cover the order. */
   short?: boolean;
+  /** Dims the amount while it is being re-read, so a stale number is visibly stale. */
+  checking?: boolean;
 }
 
 /** The reader's бука balance, shown above the book they are about to pay for. */
-export function BalanceLine({ books, short = false }: Props) {
+export function BalanceLine({ books, short = false, checking = false }: Props) {
   return (
-    <div className={`balance-line ${short ? "balance-line--short" : ""}`}>
+    <div
+      className={`balance-line ${short ? "balance-line--short" : ""} ${
+        checking ? "balance-line--checking" : ""
+      }`}
+    >
       <span className="balance-line__label">На вашем счету</span>
       <span className="balance-line__right">
         <span className="balance-line__value">
